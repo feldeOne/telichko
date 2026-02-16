@@ -1,0 +1,17 @@
+# API Configuration (contains sensitive API keys)
+api/config.php
+
+# API Cache directory
+api/cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log

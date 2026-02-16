@@ -223,49 +223,212 @@
 
 })()
 /**
- * Medical News Section - Filter Functionality
+ * Medical News Section - Dynamic News Loading & Filter Functionality
  */
 document.addEventListener('DOMContentLoaded', function() {
+  const newsGrid = document.querySelector('.medical-news .news-grid');
   const filterChips = document.querySelectorAll('.medical-news .chip');
-  const newsCards = document.querySelectorAll('.medical-news .news-card');
-  
-  if (filterChips.length === 0 || newsCards.length === 0) return;
-  
-  filterChips.forEach(chip => {
-    chip.addEventListener('click', function() {
-      const filter = this.dataset.filter;
-      
-      // Update active chip
-      filterChips.forEach(c => {
-        c.classList.remove('active');
-        c.setAttribute('aria-pressed', 'false');
-      });
-      this.classList.add('active');
-      this.setAttribute('aria-pressed', 'true');
-      
-      // Filter cards with smooth animation
-      newsCards.forEach(card => {
-        const category = card.dataset.category;
-        
-        if (filter === 'all' || category === filter) {
-          card.style.display = '';
-          setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'scale(1)';
-          }, 10);
-        } else {
-          card.style.opacity = '0';
-          card.style.transform = 'scale(0.95)';
-          setTimeout(() => {
-            card.style.display = 'none';
-          }, 300);
-        }
+
+  // Load news from API
+  loadMedicalNews();
+
+  /**
+   * Load medical news from backend API
+   */
+  async function loadMedicalNews() {
+    if (!newsGrid) return;
+
+    // Show loading state
+    newsGrid.innerHTML = '<div class="loading-news"><p>Lade aktuelle medizinische News...</p></div>';
+
+    try {
+      console.log('Fetching news from API...');
+      const response = await fetch('/api/get-news.php');
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      console.log('Response text (first 200 chars):', text.substring(0, 200));
+
+      const data = JSON.parse(text);
+
+      if (data.error) {
+        console.error('API returned error:', data.message);
+        showError(data.message);
+        return;
+      }
+
+      if (data.articles && data.articles.length > 0) {
+        console.log('Rendering', data.articles.length, 'articles');
+        renderNewsArticles(data.articles);
+        initializeFilters();
+      } else {
+        showError('Keine News gefunden');
+      }
+    } catch (error) {
+      console.error('Failed to load news:', error);
+      showError('Fehler beim Laden der News: ' + error.message);
+    }
+  }
+
+  /**
+   * Render news articles in the grid
+   */
+  function renderNewsArticles(articles) {
+    newsGrid.innerHTML = '';
+
+    articles.forEach((article, index) => {
+      const card = createNewsCard(article);
+      newsGrid.appendChild(card);
+    });
+  }
+
+  /**
+   * Create a news card element
+   */
+  function createNewsCard(article) {
+    const card = document.createElement('article');
+    card.className = article.isFeatured ? 'news-card featured' : 'news-card';
+    card.dataset.category = article.category;
+
+    const publishDate = formatDate(article.publishedAt);
+    const badges = createBadges(article);
+    const imageHtml = article.imageUrl
+      ? `<div class="card-image">
+           <img src="${escapeHtml(article.imageUrl)}"
+                alt="${escapeHtml(article.title)}"
+                loading="lazy"
+                onerror="this.style.display='none'; const placeholder = document.createElement('div'); placeholder.className = 'image-placeholder'; placeholder.innerHTML = '<i class=&quot;bi bi-newspaper&quot;></i>'; this.parentElement.classList.add('no-image'); this.parentElement.appendChild(placeholder);">
+         </div>`
+      : '<div class="card-image no-image"><div class="image-placeholder"><i class="bi bi-newspaper"></i></div></div>';
+
+    card.innerHTML = `
+      ${imageHtml}
+      <div class="card-content">
+        <div class="card-badge-group">
+          ${badges}
+        </div>
+        <time class="card-date" datetime="${article.publishedAt}">${publishDate}</time>
+        <h3 class="card-title">${escapeHtml(article.title)}</h3>
+        <p class="card-description">${escapeHtml(article.description || '')}</p>
+        <div class="card-meta">
+          <span class="meta-source">
+            <i class="bi bi-newspaper"></i>
+            ${escapeHtml(article.source)}
+          </span>
+        </div>
+        <a href="${escapeHtml(article.url)}" class="card-link" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(article.title)} lesen">
+          Mehr lesen <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    `;
+
+    return card;
+  }
+
+  /**
+   * Create category badges
+   */
+  function createBadges(article) {
+    const categoryLabels = {
+      'digital-health': 'Digital Health',
+      'gesundheitssystem': 'Gesundheitssystem',
+      'medtech': 'MedTech',
+      'ki-forschung': 'KI & Forschung'
+    };
+
+    let badges = '';
+
+    if (article.isFeatured) {
+      badges += '<span class="badge badge-hot">🔥 Hot</span>';
+    }
+
+    badges += `<span class="badge badge-category">${categoryLabels[article.category] || 'News'}</span>`;
+
+    return badges;
+  }
+
+  /**
+   * Format date in German
+   */
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleDateString('de-DE', { month: 'long' });
+    const year = date.getFullYear();
+
+    return `${day}. ${month} ${year}`;
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Show error message
+   */
+  function showError(message) {
+    newsGrid.innerHTML = `
+      <div class="news-error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Initialize filter functionality
+   */
+  function initializeFilters() {
+    const newsCards = document.querySelectorAll('.medical-news .news-card');
+
+    if (filterChips.length === 0 || newsCards.length === 0) return;
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        const filter = this.dataset.filter;
+
+        // Update active chip
+        filterChips.forEach(c => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
+
+        // Filter cards with smooth animation
+        newsCards.forEach(card => {
+          const category = card.dataset.category;
+
+          if (filter === 'all' || category === filter) {
+            card.style.display = '';
+            setTimeout(() => {
+              card.style.opacity = '1';
+              card.style.transform = 'scale(1)';
+            }, 10);
+          } else {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              card.style.display = 'none';
+            }, 300);
+          }
+        });
       });
     });
-  });
-  
-  // Initialize card transitions
-  newsCards.forEach(card => {
-    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  });
+
+    // Initialize card transitions
+    newsCards.forEach(card => {
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    });
+  }
 });

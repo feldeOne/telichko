@@ -421,17 +421,23 @@ body  {
 
  #hero h1  {
    margin: 0;
-   font-size: 48px;
+   font-size: 56px;
    font-weight: 700;
-   line-height: 56px;
+   line-height: 64px;
    text-transform: uppercase;
-   color: red;
+   color: #660708;
+   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(164, 22, 26, 0.3);
+   animation: heroFadeIn 1s ease-out;
    }
 
  #hero h2  {
-   color: red;
+   color: #a4161a;
    margin: 10px 0 0 0;
-   font-size: 24px;
+   font-size: 26px;
+   font-weight: 500;
+   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+   animation: heroFadeIn 1.3s ease-out;
    }
 
  #hero .btn-get-started  {
@@ -447,11 +453,25 @@ body  {
    transition: 0.5s;
    color: #fff;
    background: #a4161a;
+   animation: heroFadeIn 1.6s ease-out;
    }
 
  #hero .btn-get-started:hover  {
    background: red;
+   transform: translateY(-2px);
+   box-shadow: 0 4px 12px rgba(164, 22, 26, 0.4);
    }
+
+ @keyframes heroFadeIn {
+   0% {
+     opacity: 0;
+     transform: translateY(30px);
+   }
+   100% {
+     opacity: 1;
+     transform: translateY(0);
+   }
+ }
 
  @media (min-width: 1024px)  {
    #hero  {
@@ -471,13 +491,13 @@ body  {
    }
 
  #hero h1  {
-   font-size: 28px;
-   line-height: 36px;
+   font-size: 32px;
+   line-height: 40px;
    }
 
  #hero h2  {
-   font-size: 18px;
-   line-height: 24px;
+   font-size: 20px;
+   line-height: 28px;
    margin-bottom: 30px;
    }
 
@@ -1840,14 +1860,76 @@ body  {
 .medical-news .news-card {
   background: white;
   border-radius: 16px;
-  padding: 28px;
+  padding: 0;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.medical-news .card-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  position: relative;
+}
+
+.medical-news .card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.medical-news .news-card:hover .card-image img {
+  transform: scale(1.05);
+}
+
+.medical-news .card-image.no-image {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(164, 22, 26, 0.05) 0%, rgba(192, 57, 43, 0.05) 100%);
+}
+
+.medical-news .image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: placeholderFade 0.5s ease-in;
+}
+
+.medical-news .image-placeholder i {
+  font-size: 36px;
+  color: #a4161a;
+}
+
+@keyframes placeholderFade {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.medical-news .card-content {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
 }
 
 .medical-news .news-card:hover {
@@ -1864,6 +1946,10 @@ body  {
   overflow: hidden;
 }
 
+.medical-news .news-card.featured .card-image {
+  height: 280px;
+}
+
 .medical-news .news-card.featured::before {
   content: '';
   position: absolute;
@@ -1872,6 +1958,7 @@ body  {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #a4161a, #c0392b);
+  z-index: 1;
 }
 
 /* Badges */
@@ -1962,6 +2049,24 @@ body  {
   align-items: center;
   gap: 4px;
   transition: color 0.3s ease;
+}
+
+.medical-news .meta-source {
+  font-size: 13px;
+  color: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  background: rgba(108, 117, 125, 0.08);
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.medical-news .meta-source i {
+  color: #a4161a;
+  font-size: 14px;
 }
 
 .medical-news .news-card:hover .meta-icon {
@@ -2074,11 +2179,59 @@ body  {
     justify-content: center;
   }
   
-  .medical-news .news-card {
+  .medical-news .news-card .card-image {
+    height: 160px;
+  }
+
+  .medical-news .news-card.featured .card-image {
+    height: 200px;
+  }
+
+  .medical-news .card-content {
     padding: 20px;
   }
-  
+
   .medical-news .news-card.featured .card-title {
     font-size: 20px;
   }
+}
+
+/* Medical News - Loading & Error States */
+.medical-news .loading-news,
+.medical-news .news-error {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 2px dashed #dee2e6;
+}
+
+.medical-news .loading-news p,
+.medical-news .news-error p {
+  font-size: 16px;
+  color: #666;
+  margin: 15px 0 0;
+}
+
+.medical-news .loading-news::before {
+  content: "";
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #a4161a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.medical-news .news-error i {
+  font-size: 48px;
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
